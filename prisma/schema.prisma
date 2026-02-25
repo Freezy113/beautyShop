@@ -1,0 +1,85 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BookingMode {
+  SERVICE_LIST
+  TIME_SLOT
+}
+
+enum AppointmentStatus {
+  BOOKED
+  COMPLETED
+  CANCELED
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  passwordHash String
+  name         String
+  slug         String      @unique
+  bookingMode  BookingMode @default(SERVICE_LIST)
+  services     Service[]
+  appointments Appointment[]
+  clients      Client[]
+  expenses     Expense[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Service {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  price        Int
+  durationMin  Int
+  isPublic     Boolean  @default(true)
+  appointments Appointment[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Appointment {
+  id          String            @id @default(uuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceId   String?
+  service     Service?          @relation(fields: [serviceId], references: [id])
+  clientName  String
+  clientPhone String
+  startTime   DateTime
+  endTime     DateTime
+  status      AppointmentStatus @default(BOOKED)
+  finalPrice  Int?
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model Client {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Int
+  description String
+  createdAt   DateTime @default(now())
+}

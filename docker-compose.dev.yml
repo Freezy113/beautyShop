@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: beautyshop-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-beautyshop}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./prisma:/app/prisma
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-beautyshop}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - beautyshop-network
+
+  # Backend API (Development with hot-reload)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: beautyshop-backend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-beautyshop}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
+    volumes:
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    networks:
+      - beautyshop-network
+
+  # Frontend (Development with hot-reload)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: beautyshop-frontend-dev
+    restart: unless-stopped
+    volumes:
+      - ./frontend/src:/app/src
+      - /app/node_modules
+    depends_on:
+      - backend
+    ports:
+      - "5174:5173"
+    networks:
+      - beautyshop-network
+
+volumes:
+  postgres_data_dev:
+    driver: local
+
+networks:
+  beautyshop-network:
+    driver: bridge

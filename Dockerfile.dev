@@ -1,0 +1,33 @@
+# Development Dockerfile for BeautyShop Backend
+# Используем node:20-slim для совместимости с production и OpenSSL
+FROM node:20-slim
+
+WORKDIR /app
+
+# Install system dependencies for Prisma
+RUN apt-get update && apt-get install -y \
+    dumb-init \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy Prisma schema
+COPY prisma ./prisma/
+
+# Copy source code first
+COPY . .
+
+# Generate Prisma Client inside container
+RUN npx prisma generate
+
+# Expose port
+EXPOSE 3000
+
+# Set dumb-init as entrypoint
+ENTRYPOINT ["dumb-init", "--"]
+
+# Regenerate Prisma Client and start development server
+CMD ["sh", "-c", "npx prisma generate && npm run dev"]
