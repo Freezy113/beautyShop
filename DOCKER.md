@@ -1,6 +1,6 @@
 # Docker Setup для BeautyShop
 
-Этот документ описывает如何 использовать Docker для запуска BeautyShop проекта.
+Этот документ описывает как использовать Docker для запуска BeautyShop проекта.
 
 ## Требования
 
@@ -173,13 +173,14 @@ VITE_API_URL=http://localhost:8080
    - Оптимизация образов
 
 2. **Production stage:**
-   - **Debian-based образ (node:20-slim) вместо Alpine**
+   - Debian-based образ (`node:20-slim`) вместо Alpine
    - Только production зависимости
    - Non-root пользователь (nodejs:1001)
    - dumb-init для корректной обработки сигналов
    - Health check на /health endpoint
 
-> **Важно:** Используется `node:20-slim` вместо Alpine для решения проблемы с OpenSSL.
+> **Важно:** Backend использует `node:20-slim` (Debian) вместо Alpine для решения проблемы с OpenSSL.
+> Frontend builder использует `node:20-alpine`, production stage — `nginx:alpine`.
 > Это предотвращает ошибку: `libssl.so.1.1: version OPENSSL_1_1_0 not found`
 > Prisma Client генерируется в builder stage и гарантированно работает в runner stage.
 
@@ -191,13 +192,13 @@ VITE_API_URL=http://localhost:8080
 
 2. **Production stage:**
    - nginx:alpine
-   - Custom nginx config:
+   - Nginx конфиг (встроен в Dockerfile через heredoc):
      - Gzip сжатие
      - Proxy /api/* к backend
      - SPA routing (React Router)
      - Кеширование статики
      - Security headers
-   - Отдельный health check
+   - Health check (wget)
 
 ## Разработка
 

@@ -1,114 +1,131 @@
-# BeautyShop Backend - Настройка и запуск
+# BeautyShop - Настройка и запуск
 
-## Статус проекта
-✅ **Бэкенд успешно реализован и работает**
+## Требования
 
-Приложение запущено на порту 3000 и доступно по адресу: http://localhost:3000
+- Node.js 18+ (рекомендуется 20+)
+- PostgreSQL 15+
+- npm
 
-## Что реализовано
+Или:
+- Docker Engine 20.10+
+- Docker Compose 2.0+
 
-### 1. Структура проекта
-```
-beautyShop/
-├── src/
-│   ├── controllers/     # Контроллеры для всех сущностей
-│   ├── middleware/      # JWT аутентификация и валидация
-│   ├── routes/         # Маршруты API
-│   ├── types/          # TypeScript интерфейсы
-│   ├── utils/          # Вспомогательные функции
-│   ├── index.ts        # Основной файл приложения
-│   └── index-fixed.ts  # Рабочая версия без БД
-├── prisma/
-│   ├── schema.prisma   # Полная схема базы данных
-│   └── seed.ts        # Тестовые данные
-└── package.json
-```
+---
 
-### 2. API эндпоинты
-- `GET /health` - Health check
-- `GET /api` - Информация о API
+## Вариант 1: Docker (рекомендуется)
 
-### 3. Демо эндпоинты (без БД)
-- `POST /api/auth/register` - Регистрация
-- `POST /api/auth/login` - Вход
-- `GET /api/services` - Получение услуг
-
-## Для полного запуска с базой данных
-
-### 1. Установить PostgreSQL
 ```bash
-# Ubuntu/Debian
-sudo apt-get install postgresql postgresql-contrib
+# 1. Скопировать .env
+cp .env.docker.example .env
+# Отредактировать пароли и JWT_SECRET!
 
-# CentOS/RHEL
-sudo yum install postgresql-server postgresql-contrib
-sudo postgresql-setup initdb
+# 2. Сборка и запуск
+docker-compose up -d --build
+
+# 3. Миграции и seed данные
+make migrate-db
+make seed-db
 ```
 
-### 2. Создать базу данных
-```bash
-sudo -u postgres psql
-CREATE DATABASE beautyshop;
-CREATE USER beautyshop_user WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE beautyshop TO beautyshop_user;
-\q
-```
+**Доступ:**
+- Frontend: http://localhost:8081
+- Backend API: http://localhost:3000
+- PostgreSQL: localhost:5434
 
-### 3. Обновить .env файл
-```env
-DATABASE_URL="postgresql://beautyshop_user:your_password@localhost:5432/beautyshop"
-JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
-```
+Подробнее: [DOCKER.md](./DOCKER.md)
 
-### 4. Запустить миграции и seeded данные
+---
+
+## Вариант 2: Локальный запуск
+
+### 1. Установка зависимостей
+
 ```bash
 cd beautyShop
+npm install
+cd frontend && npm install && cd ..
+```
+
+### 2. Настройка окружения
+
+```bash
+cp .env.example .env
+```
+
+Отредактируйте `.env`:
+```env
+PORT=3000
+DATABASE_URL="postgresql://username:password@localhost:5432/beautyshop"
+JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
+NODE_ENV="development"
+```
+
+### 3. Настройка базы данных
+
+```bash
+# Создать базу данных
+sudo -u postgres psql
+CREATE DATABASE beautyshop;
+\q
+
+# Генерация Prisma клиента
+npx prisma generate
+
+# Миграции
 npx prisma migrate dev
+
+# Тестовые данные (опционально)
 npx prisma db seed
 ```
 
-### 5. Запустить полное приложение
+### 4. Запуск
+
+**Backend** (терминал 1):
 ```bash
 npm run dev
 ```
 
-## Функциональность готова к использованию
-
-### Аутентификация
-- Регистрация с генерацией slug из имени
-- Вход с JWT токеном
-- Хеширование паролей bcrypt
-
-### Управление услугами
-- CRUD операции для услуг
-- Публичные/приватные услуги
-
-### Управление записями
-- Создание записей с проверкой пересечения времени
-- Изменение статуса записей
-
-### Клиенты
-- База клиентов с заметками
-
-### Финансы
-- Учет расходов
-- Статистика с разбивкой по месяцам
-
-### Публичный API
-- Данные мастера по slug
-- Запись на услуги клиентами
-
-## Технологический стек
-- Node.js + Express + TypeScript
-- Prisma ORM + PostgreSQL
-- JWT + Bcrypt
-- Express-validator для валидации
-
-## Тестирование API
-Демо версия доступна и показывает какие эндпоинты будут работать после настройки БД.
-
-Для тестирования:
+**Frontend** (терминал 2):
 ```bash
-curl http://localhost:3000/api
-curl -X POST http://localhost:3000/api/auth/register -H "Content-Type: application/json" -d '{"email":"test@example.com","password":"password","name":"Test Master"}'
+cd frontend
+npm run dev
+```
+
+**Доступ:**
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3000
+
+---
+
+## Сборка для production
+
+```bash
+# Backend
+npm run build
+npm start
+
+# Frontend
+cd frontend
+npm run build
+# Результат в frontend/dist/
+```
+
+---
+
+## Демо-данные
+
+После seed:
+- **Email:** test@example.com
+- **Password:** password123
+- **Публичная страница:** http://localhost:5173/book/test-master
+
+---
+
+## Полезные команды
+
+```bash
+npx prisma studio     # GUI для базы данных
+npx prisma migrate dev # Новая миграция
+npm test               # Запуск тестов
+npm run test:coverage  # Тесты с покрытием
 ```

@@ -6,7 +6,7 @@ Frontend для SaaS проекта BeautyShop, созданный на базе
 
 - **React 19** + **TypeScript**
 - **Vite 5** для сборки и разработки
-- **Tailwind CSS 4** (Mobile First)
+- **Tailwind CSS 3** (Mobile First)
 - **React Router 6** для навигации
 - **Axios** для API запросов
 

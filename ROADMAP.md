@@ -88,39 +88,38 @@
 - [ ] 13.4 Создать TEST_CASES.md
 
 ## Этап 14: Docker ✅
-- [x] 14.1 Создать Dockerfile для backend
-- [x] 14.2 Создать Dockerfile для frontend
-- [x] 14.3 Создать docker-compose.yml с PostgreSQL
+- [x] 14.1 Создать Dockerfile для backend (production + dev)
+- [x] 14.2 Создать Dockerfile для frontend (production + dev)
+- [x] 14.3 Создать docker-compose.yml (production + dev)
 - [x] 14.4 Настроить volumes и networks
 - [x] 14.5 Исправить проблему с OpenSSL (node:20-slim вместо Alpine)
+- [x] 14.6 Создать Makefile с командами управления
+- [x] 14.7 Nginx конфиг (gzip, SPA routing, API proxy)
 
-## Этап 15: Документация
-- [ ] 15.1 Создать API документацию (Swagger/OpenAPI)
-- [ ] 15.2 Написать README для разработчиков
-- [ ] 15.3 Создать инструкции по деплою
+## Этап 15: Документация ✅ (частично)
+- [x] 15.1 README.md
+- [x] 15.2 SETUP.md
+- [x] 15.3 DOCKER.md
+- [ ] 15.4 Создать API документацию (Swagger/OpenAPI)
+- [ ] 15.5 Создать инструкции по деплою на VPS/cloud
 
 ---
 
 ## Приоритеты на будущее
 
 ### Высокий приоритет:
-1. Автотесты (для стабильности)
-2. CI/CD pipeline (для автоматического деплоя)
+1. Автотесты (Jest настроен, нужно написать тесты)
+2. CI/CD pipeline (GitHub Actions)
 
 ### Средний приоритет:
-1. Swagger документация
-2. Логирование ошибок
-3. Мониторинг
-
-### Средний приоритет:
-1. Swagger документация
-2. Логирование ошибок
-3. Мониторинг
+1. Swagger/OpenAPI документация
+2. Логирование ошибок (winston/pino)
+3. E2E тесты (Playwright/Cypress)
 
 ### Низкий приоритет:
-1. Unit тесты для компонентов
-2. E2E тесты (Playwright/Cypress)
-3. CI/CD pipeline
+1. Мониторинг
+2. Unit тесты для React компонентов
+3. Деплой на VPS/cloud
 
 ---
 
