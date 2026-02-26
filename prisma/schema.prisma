@@ -15,6 +15,7 @@ enum BookingMode {
 
 enum AppointmentStatus {
   BOOKED
+  CONFIRMED
   COMPLETED
   CANCELED
 }

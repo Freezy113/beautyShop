@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { masterApi } from '../../services/api';
-import { Appointment, Service } from '../../types';
+import { Appointment } from '../../types';
 import { Calendar } from '../../components/common/Calendar';
 import { Button } from '../../components/common/Button';
+
+const statusConfig: Record<string, { label: string; classes: string }> = {
+  BOOKED: { label: 'Новая', classes: 'bg-amber-50 text-amber-700 border border-amber-200' },
+  CONFIRMED: { label: 'Подтверждена', classes: 'bg-emerald-50 text-emerald-700 border border-emerald-200' },
+  COMPLETED: { label: 'Завершена', classes: 'bg-blue-50 text-blue-700 border border-blue-200' },
+  CANCELED: { label: 'Отменена', classes: 'bg-gray-50 text-gray-500 border border-gray-200' },
+};
 
 export const DashboardPage: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -10,9 +17,7 @@ export const DashboardPage: React.FC = () => {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    loadAppointments();
-  }, []);
+  useEffect(() => { loadAppointments(); }, []);
 
   const loadAppointments = async () => {
     setIsLoading(true);
@@ -37,95 +42,113 @@ export const DashboardPage: React.FC = () => {
   };
 
   const filteredAppointments = selectedDate
-    ? appointments.filter(appointment =>
-        appointment.startTime.startsWith(selectedDate.toISOString().split('T')[0])
-      )
+    ? appointments.filter(a => a.startTime.startsWith(selectedDate.toISOString().split('T')[0]))
     : appointments;
+
+  const sortedAppointments = [...filteredAppointments].sort(
+    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Кабинет мастера</h1>
-          <p className="text-gray-600">Управляйте вашими записями</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Записи</h1>
+            <p className="text-sm text-gray-500 mt-1">Управляйте вашими записями</p>
+          </div>
+          <Button onClick={loadAppointments} isLoading={isLoading} variant="secondary" size="sm">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+            </svg>
+            Обновить
+          </Button>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Календарь */}
           <div className="lg:col-span-1">
-            <div className="card">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Календарь</h2>
-              <Calendar
-                selectedDate={selectedDate}
-                selectedTime=""
-                onDateSelect={setSelectedDate}
-                onTimeSelect={() => {}}
-                appointments={appointments}
-              />
-            </div>
+            <Calendar
+              selectedDate={selectedDate}
+              selectedTime=""
+              onDateSelect={setSelectedDate}
+              onTimeSelect={() => {}}
+              appointments={appointments}
+              showTimeSlots={false}
+            />
+            {selectedDate && (
+              <button
+                onClick={() => setSelectedDate(null)}
+                className="w-full mt-3 text-sm text-gray-500 hover:text-gray-700 transition-colors py-2"
+              >
+                Показать все записи
+              </button>
+            )}
           </div>
 
-          {/* Записи */}
           <div className="lg:col-span-2">
             <div className="card">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  Записи {selectedDate && `на ${selectedDate.toLocaleDateString('ru-RU')}`}
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {selectedDate
+                    ? `Записи на ${selectedDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}`
+                    : 'Все записи'
+                  }
                 </h2>
-                <Button onClick={loadAppointments} isLoading={isLoading} variant="secondary">
-                  Обновить
-                </Button>
+                <span className="text-sm text-gray-400">{sortedAppointments.length} записей</span>
               </div>
 
-              {filteredAppointments.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">
-                  {selectedDate ? 'Нет записей на эту дату' : 'Нет записей'}
-                </p>
+              {sortedAppointments.length === 0 ? (
+                <div className="text-center py-12">
+                  <svg className="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0121 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                  </svg>
+                  <p className="text-gray-400 text-sm">
+                    {selectedDate ? 'Нет записей на эту дату' : 'Пока нет записей'}
+                  </p>
+                </div>
               ) : (
-                <div className="space-y-3">
-                  {filteredAppointments.map((appointment) => (
-                    <div
-                      key={appointment.id}
-                      className={`border rounded-lg p-4 cursor-pointer transition-colors
-                        ${selectedAppointment?.id === appointment.id
-                          ? 'border-primary-500 bg-primary-50'
-                          : 'border-gray-200 hover:border-gray-300'
-                        }
-                      `}
-                      onClick={() => setSelectedAppointment(appointment)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {appointment.clientName}
+                <div className="space-y-2">
+                  {sortedAppointments.map((appointment) => {
+                    const status = statusConfig[appointment.status] || statusConfig.BOOKED;
+                    return (
+                      <div
+                        key={appointment.id}
+                        className={`border rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-sm
+                          ${selectedAppointment?.id === appointment.id
+                            ? 'border-primary-300 bg-primary-50/50 shadow-sm'
+                            : 'border-gray-100 hover:border-gray-200'
+                          }
+                        `}
+                        onClick={() => setSelectedAppointment(appointment)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-gray-900 truncate">{appointment.clientName}</span>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${status.classes}`}>
+                                {status.label}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3 text-sm text-gray-500">
+                              <span className="flex items-center gap-1">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {appointment.startTime.slice(11, 16)} - {appointment.endTime.slice(11, 16)}
+                              </span>
+                              {appointment.service && (
+                                <span className="truncate">{appointment.service.name}</span>
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">{appointment.clientPhone}</div>
                           </div>
-                          <div className="text-sm text-gray-600">
-                            {appointment.startTime.slice(11, 16)} - {appointment.endTime.slice(11, 16)}
-                            {appointment.serviceName && ` • ${appointment.serviceName}`}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {appointment.clientPhone}
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                            ${appointment.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : ''}
-                            ${appointment.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' : ''}
-                            ${appointment.status === 'COMPLETED' ? 'bg-blue-100 text-blue-800' : ''}
-                            ${appointment.status === 'CANCELLED' ? 'bg-gray-100 text-gray-800' : ''}
-                          `}>
-                            {appointment.status === 'PENDING' && 'В ожидании'}
-                            {appointment.status === 'CONFIRMED' && 'Подтверждена'}
-                            {appointment.status === 'COMPLETED' && 'Завершена'}
-                            {appointment.status === 'CANCELLED' && 'Отменена'}
-                          </span>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {new Date(appointment.startTime).toLocaleDateString('ru-RU')}
+                          <div className="text-xs text-gray-400 ml-3 flex-shrink-0">
+                            {new Date(appointment.startTime).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -133,76 +156,76 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Модальное окно управления записью */}
+      {/* Modal */}
       {selectedAppointment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Управление записью</h3>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedAppointment(null)}>
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-gray-900">Управление записью</h3>
+              <button onClick={() => setSelectedAppointment(null)} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
             <div className="space-y-3 mb-6">
-              <div>
-                <span className="font-medium text-gray-700">Клиент:</span>
-                <p className="text-gray-900">{selectedAppointment.clientName}</p>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">Телефон:</span>
-                <p className="text-gray-900">{selectedAppointment.clientPhone}</p>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">Время:</span>
-                <p className="text-gray-900">
-                  {new Date(selectedAppointment.startTime).toLocaleString('ru-RU')}
-                </p>
-              </div>
-              {selectedAppointment.serviceName && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <div className="w-10 h-10 bg-primary-100 text-primary-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                  {selectedAppointment.clientName.charAt(0).toUpperCase()}
+                </div>
                 <div>
-                  <span className="font-medium text-gray-700">Услуга:</span>
-                  <p className="text-gray-900">{selectedAppointment.serviceName}</p>
+                  <div className="font-medium text-gray-900">{selectedAppointment.clientName}</div>
+                  <div className="text-sm text-gray-500">{selectedAppointment.clientPhone}</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  <div className="text-xs text-gray-400 mb-0.5">Дата и время</div>
+                  <div className="text-sm font-medium text-gray-900">
+                    {new Date(selectedAppointment.startTime).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                    {', '}
+                    {selectedAppointment.startTime.slice(11, 16)}
+                  </div>
+                </div>
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  <div className="text-xs text-gray-400 mb-0.5">Статус</div>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold ${(statusConfig[selectedAppointment.status] || statusConfig.BOOKED).classes}`}>
+                    {(statusConfig[selectedAppointment.status] || statusConfig.BOOKED).label}
+                  </span>
+                </div>
+              </div>
+              {selectedAppointment.service && (
+                <div className="p-3 bg-gray-50 rounded-xl">
+                  <div className="text-xs text-gray-400 mb-0.5">Услуга</div>
+                  <div className="text-sm font-medium text-gray-900">{selectedAppointment.service.name}</div>
                 </div>
               )}
             </div>
-            <div className="flex space-x-3">
-              {selectedAppointment.status === 'PENDING' && (
+
+            <div className="flex gap-2">
+              {selectedAppointment.status === 'BOOKED' && (
                 <>
-                  <Button
-                    variant="primary"
-                    onClick={() => updateAppointmentStatus(selectedAppointment.id, 'CONFIRMED')}
-                    className="flex-1"
-                  >
+                  <Button variant="primary" onClick={() => updateAppointmentStatus(selectedAppointment.id, 'CONFIRMED')} className="flex-1">
                     Подтвердить
                   </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => updateAppointmentStatus(selectedAppointment.id, 'CANCELLED')}
-                    className="flex-1"
-                  >
+                  <Button variant="danger" onClick={() => updateAppointmentStatus(selectedAppointment.id, 'CANCELED')} className="flex-1">
                     Отменить
                   </Button>
                 </>
               )}
               {selectedAppointment.status === 'CONFIRMED' && (
                 <>
-                  <Button
-                    variant="primary"
-                    onClick={() => updateAppointmentStatus(selectedAppointment.id, 'COMPLETED')}
-                    className="flex-1"
-                  >
+                  <Button variant="primary" onClick={() => updateAppointmentStatus(selectedAppointment.id, 'COMPLETED')} className="flex-1">
                     Завершить
                   </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => setSelectedAppointment(null)}
-                    className="flex-1"
-                  >
-                    Закрыть
+                  <Button variant="danger" onClick={() => updateAppointmentStatus(selectedAppointment.id, 'CANCELED')} className="flex-1">
+                    Отменить
                   </Button>
                 </>
               )}
-              {selectedAppointment.status === 'COMPLETED' && (
-                <Button
-                  variant="secondary"
-                  onClick={() => setSelectedAppointment(null)}
-                  className="w-full"
-                >
+              {(selectedAppointment.status === 'COMPLETED' || selectedAppointment.status === 'CANCELED') && (
+                <Button variant="secondary" onClick={() => setSelectedAppointment(null)} className="w-full">
                   Закрыть
                 </Button>
               )}

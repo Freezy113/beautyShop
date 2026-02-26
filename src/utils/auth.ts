@@ -45,6 +45,7 @@ export const isTimeSlotAvailable = async (
 ): Promise<boolean> => {
   const whereClause: any = {
     userId,
+    status: { notIn: ['CANCELED', 'COMPLETED'] },
     AND: [
       { startTime: { lt: endTime } },
       { endTime: { gt: startTime } }

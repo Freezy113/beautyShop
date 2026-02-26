@@ -32,9 +32,10 @@ export const getStats = async (req: AuthRequest, res: Response) => {
 
     // Calculate monthly stats for last 6 months
     const monthlyStats = [];
+    const now = new Date();
     for (let i = 5; i >= 0; i--) {
-      const monthStart = subMonths(new Date(), i);
-      const monthEnd = subMonths(new Date(), i - 1);
+      const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
 
       const monthAppointments = appointments.filter(appt =>
         appt.startTime >= monthStart && appt.startTime < monthEnd

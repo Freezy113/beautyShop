@@ -7,5 +7,6 @@ const router = Router();
 
 router.get('/', authenticate, clientsController.getClients);
 router.post('/', authenticate, validateClient, clientsController.createClient);
+router.put('/:id', authenticate, validateClient, clientsController.updateClient);
 
 export default router;

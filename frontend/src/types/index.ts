@@ -1,8 +1,8 @@
-// Типы для аутентификации
 export interface User {
   id: string;
   email: string;
   name: string;
+  slug?: string;
   bookingMode: 'SERVICE_LIST' | 'TIME_SLOT';
   createdAt: string;
   updatedAt: string;
@@ -13,7 +13,6 @@ export interface AuthResponse {
   token: string;
 }
 
-// Типы для API
 export interface LoginData {
   email: string;
   password: string;
@@ -24,11 +23,10 @@ export interface RegisterData extends LoginData {
   bookingMode: 'SERVICE_LIST' | 'TIME_SLOT';
 }
 
-// Типы для мастера и услуг
 export interface Service {
   id: string;
   name: string;
-  durationMin: number; // в минутах
+  durationMin: number;
   price: number;
   isPublic: boolean;
   createdAt: string;
@@ -38,30 +36,22 @@ export interface Service {
 export interface MasterProfile {
   id: string;
   name: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  description?: string;
+  bookingMode: 'SERVICE_LIST' | 'TIME_SLOT';
   services: Service[];
-  workingHours: {
-    [key: string]: {
-      start: string; // HH:mm
-      end: string;   // HH:mm
-    };
-  };
+  appointments: { id: string; startTime: string; endTime: string }[];
 }
 
-// Типы для записей
 export interface Appointment {
   id: string;
-  clientId: string;
   clientName: string;
   clientPhone: string;
   serviceId?: string;
-  serviceName?: string;
+  service?: { name: string; price: number; durationMin: number };
   startTime: string;
   endTime: string;
-  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+  status: 'BOOKED' | 'CONFIRMED' | 'COMPLETED' | 'CANCELED';
+  finalPrice?: number;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -70,56 +60,44 @@ export interface BookingData {
   clientName: string;
   clientPhone: string;
   startTime: string;
-  serviceId?: string;
   endTime?: string;
+  serviceId?: string;
 }
 
-// Типы для клиентов
 export interface Client {
   id: string;
   name: string;
   phone: string;
-  email?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-// Типы для расходов
 export interface Expense {
   id: string;
   description: string;
   amount: number;
-  category: string;
-  date: string;
   createdAt: string;
-  updatedAt: string;
 }
 
-// Типы для статистики
 export interface StatsResponse {
   totalAppointments: number;
+  completedAppointments: number;
   totalRevenue: number;
+  totalExpenses: number;
+  netProfit: number;
   monthlyStats: {
     month: string;
     appointments: number;
     revenue: number;
   }[];
-  topServices: {
-    serviceId: string;
-    serviceName: string;
-    count: number;
-    revenue: number;
-  }[];
 }
 
-// Типы для формы валидации
 export interface ValidationError {
   field: string;
   message: string;
 }
 
-// Типы для состояний загрузки
 export interface LoadingState {
   isLoading: boolean;
   error?: string;

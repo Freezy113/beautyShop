@@ -29,7 +29,7 @@ export interface CreateAppointmentDto {
 }
 
 export interface UpdateAppointmentDto extends Partial<CreateAppointmentDto> {
-  status?: 'BOOKED' | 'COMPLETED' | 'CANCELED';
+  status?: 'BOOKED' | 'CONFIRMED' | 'COMPLETED' | 'CANCELED';
 }
 
 export interface CreateClientDto {

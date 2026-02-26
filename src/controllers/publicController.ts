@@ -26,15 +26,13 @@ export const getMasterData = async (req: Request, res: Response) => {
         },
         appointments: {
           where: {
-            status: 'BOOKED',
+            status: { in: ['BOOKED', 'CONFIRMED'] },
             startTime: { gte: new Date() }
           },
           select: {
             id: true,
             startTime: true,
-            endTime: true,
-            clientName: true,
-            clientPhone: true
+            endTime: true
           },
           orderBy: { startTime: 'asc' }
         }
